@@ -1,0 +1,27 @@
+#!/bin/bash
+if [ -z "$1" ]; then
+	echo usage: compressimg [directory or file]
+	echo This tool will apply common image optimization techniques to the given file,
+	echo or recursively spply them to every file in the given directory.
+	exit
+fi
+
+# apply the compressimg script to every image file within the given directory
+# if the input is a single file, execute the script on it
+ORIGSIZE=`du -sb $1 | awk '{ print $1}'`
+INPUTTYPE="Directory"
+
+# execute compression
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+if [ -d $1 ]; then
+	find $1 -type f \( -name "*.jpeg" -or -name "*.jpg" -or -name "*.png" \) -exec $DIR/compressimg '{}' \;
+else
+	INPUTTYPE="File"
+	$DIR/compressimg $1
+fi
+
+# generate stats
+NEWSIZE=`du -sb $1 | awk '{ print $1}'`
+READABLESIZE=`du -sh $1 | awk '{ print $1}'`
+((PERCENTCHANGE=100-(NEWSIZE*100/ORIGSIZE)))
+echo Finished. $INPUTTYPE is now about $READABLESIZE total \($PERCENTCHANGE% drop\)
